@@ -11,7 +11,7 @@ app.timeoutF = function(){};
 app.questionNumber = 0;
 app.questionsForThisGame = []; 
 //game settings
-app.introWaitTime = 20; 
+app.introWaitTime = 15; 
 app.intermissionWaitTime = 5; 
 app.pauseTimeBetweenQuestions = 4; 
 app.difficultySetting = {
@@ -28,6 +28,8 @@ app.difficultyTimer = {
 app.moneyLadder = ['$100', '$200', '$500', '$1,000', '$2,500', '$10,000', '$32,000', '$125,000', '$400,000', '$1 Milllion']
 app.allQuestionsAnswers = [];  
 app.LLavailable = false; 
+app.eliminatedChoices =[];  
+app.fiftyUsedThisRound = false;  
 
 //logic for choosing questions for this round 
 app.chooseQuestions = function () {
@@ -94,7 +96,9 @@ app.nextQuestion = function () {
   this.difficulty = this.questionsForThisGame[this.questionNumber].difficulty;
   this.questionNumber++; 
   this.timer = this.difficultyTimer[this.difficulty];
-  this.LLavailable = true;  
+  this.LLavailable = true; 
+  this.fiftyUsedThisRound = false;  
+  this.eliminatedChoices = [];
   //render updated states
   this.render();
   //if user times out, move to noGoodAnswer logic
@@ -196,7 +200,7 @@ app.initRender = function (time) {
     LLdiv.append(LLimg);
     //attach click event listener
     LLdiv.on('click', function() {
-      if(LLavailable){
+      if(that.LLavailable){
         $(this).addClass('hidden');
         that[$(this).attr('data')]();
       }
@@ -207,7 +211,7 @@ app.initRender = function (time) {
   //create money ladder
   _.each(this.moneyLadder, (v, i) => {
     var $moneyRowDiv = $('<div>').attr({
-      class: 'row',
+      class: 'row ladder-row',
       id: `ladder-${i+1}`
     })
     var $qNumDiv = $('<div>').addClass('col-xs-3').attr('id', 'q-Num');
@@ -222,7 +226,7 @@ app.initRender = function (time) {
   //update timer
   $('#timeLeft').html(`Time Left: ${time}`);
   //update the question text
-  $('#question').text(`Let the game begin! You have ${that.difficultyTimer.Easy} seconds to answer each easy question; easy questions are meant to be fun and funny!\n\nNote that you have three lifelines: Phone a Friend, Poll the Audience, and Fifty-fifty.`)
+  $('#question').text(`Let the game begin! You have ${that.difficultyTimer.Easy} seconds to answer each easy question; easy questions are meant to be fun and funny!\n\nNote that you have three lifelines: Phone a Friend, Poll the Audience, and Fifty-fifty.  Remember to turn audio on!`)
   
   $('#game').css({'background-color': 'lightblue'});
 }
@@ -253,6 +257,7 @@ database.ref("/QandAs").on("value", function(snapshot) {
   })
   $('#startButton').removeClass('hidden');
 })
+var fiftyAudio = new Audio ('assets/audios/fiftyFifty.mp3');
 
 
 
@@ -260,46 +265,51 @@ database.ref("/QandAs").on("value", function(snapshot) {
 app.fiftyFifty = function () {
   console.log('invoking fiftyFifty')
   var that = this;  
-  this.LLusedThisRound = true;
+  fiftyAudio.play();
   var copyArr = this.choices.slice();
   copyArr.splice((copyArr.indexOf(that.answer)),1);
   copyArr.splice(Math.floor(Math.random() *3),1);
-  for (var i = 0; i< 2 ; i++){
-   $('.btn-primary').filter(function(){
-     return $(this).attr('data') == copyArr[i]; 
-   }).addClass('hidden');
-
-  }
+  this.eliminatedChoices = copyArr; 
+  setTimeout(()=>{
+    for (var i = 0; i< 2 ; i++){
+      $('.btn-primary').filter(function(){
+        return $(this).attr('data') == copyArr[i]; 
+      }).addClass('hidden fifty-eliminated');
+    }
+  }, 4500);
 }
 
 // logic for "Phone a friend" life line
 app.phoneAFriend = function(){
   console.log('invoking phoneAFriend')
-  this.LLusedThisRound = true;
   var sentences = {};
+  var that = this; 
   var friendGuess; 
   //Confidence-related logic, to randomize what the friend would say  
     //confidence levels 
-    var confidenceArr = ['high', 'mid', 'low'];
+    var confidenceArr = ['high', 'low'];
     //randomly assigns a confidence level to the "friend"
-    var friendConfidence = confidenceArr[Math.floor(Math.random() * 3)];
+    var friendConfidence = confidenceArr[Math.floor(Math.random() * 2)];
     //for high confidence, the friend would always give the correct answer 
     if (friendConfidence === 'high') {
       friendGuess = this.answer; 
-    //for mid confidence, the friend gives the correct answer 70% of the time for 4 choices
-    } else if (friendConfidence === 'mid') {
-      var midConfidenceRandom = Math.random(); 
-      if (midConfidenceRandom < 0.6) {
-        friendGuess = this.answer;
-      } else {
-        friendGuess = this.choices[_.random(0,3)];
+    //for low confidence, the friend gives the correct answer 40% of the time for 4 choices
+    //and 50% of the time for 2 choices
+    } else if (friendConfidence === 'low') {
+      var lowConfidenceRandom = Math.random(); 
+      if (this.fiftyUsedThisRound) {
+        if (lowConfidenceRandom < 0.5) friendGuess = this.answer;
+        else friendGuess = _.reject(v => {
+            return (v == that.answer || that.eliminatedChoices.indexOf(v) !== -1) 
+          })[0];
+        } 
       }
-    //for low confidence, the friend gives the correct answer 25% of the time for 4 choices
-    } else {
-        friendGuess = this.choices[_.random(0,3)];
-    }
+      else {
+        if (lowConfidenceRandom < 0.2) friendGuess = this.answer;
+        else friendGuess = this.choices[_.random(0,3)];
+      }
+      
     sentences.high = `The answer is ${friendGuess}, final answer.`;
-    sentences.mid = `I just read about this, let's see; I believe the answer is ${friendGuess}.`;  
     sentences.low = `uhh, I would guess the answer is ${friendGuess}, but I really don't know.`;
   //Logic for choosing a specific friend & voice
     //array of names and associated voices
@@ -319,12 +329,11 @@ app.phoneAFriend = function(){
 app.pollTheAudience = function (){
   console.log('invoking pollTheAudience')
   var that = this;  
-  this.LLusedThisRound = true;  
   //logic for swapping Regis picture with the bar chart 
-  $('#IMGcontainer').empty();
+  // $('#IMGcontainer').empty();
   var canvas = $('<canvas>');
   canvas.attr('id', 'pollChart');
-  $('#IMGcontainer').append(canvas);
+  $('#money-ladder').append(canvas);
   var pollDataArr = [];
   // logic to generate random vote numbers for poll data 
   var leftOver = 80;
