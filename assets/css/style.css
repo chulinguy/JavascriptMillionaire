@@ -1,0 +1,147 @@
+::-webkit-scrollbar {
+    display: none;
+}
+
+/*div {
+  outline: 1px solid red; 
+}*/
+
+body {
+  /* background-color: #1F0336; */
+  background-color: teal;
+}
+
+
+h2 {
+  font-size: 1.8em; 
+  text-align: center;
+  color: black;
+  margin: 0;
+  font-weight: bold;
+}
+
+span {
+  background-color: white;
+}
+
+img {
+  width: 100%;
+  max-width: 100px; 
+  margin: auto;
+}
+
+code {
+  max-width: 300px; 
+  
+}
+
+pre {
+  text-align: left;
+  max-width: 300px; 
+  display: block;
+  margin-left: auto;
+  margin-right: auto 
+}
+
+p {
+  font-size: 1em;  
+}
+
+h6 {
+  font-size: 1.2em;
+  margin: 0;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.qInfoDiv {
+  font-size: 20px;  
+  font-weight: bold;
+}
+
+.btn-primary {
+  min-height: 50px;
+}
+
+.col-xs-3 {
+  padding: 0;
+}
+
+#page-header {
+  padding: 0;
+}
+
+.yellow-background{
+  background-color: #FF6504;
+}
+
+.row {
+  margin: 1vh 0 1vh 0;
+  width: 100%;
+}
+
+.LLdiv {
+  padding: 0 1vw;
+}
+
+#pollChart {
+  height: 330px;
+}
+
+#mainRow{
+  height: calc(100% - 42px)
+}
+
+#page-header {
+  margin: 0;
+  padding: 1vh 2vw 2vh 2vw;
+  height: 8vh
+}
+
+/* #regis {
+  width: 100%;
+  display: block;
+  margin: auto;
+} */
+
+code {
+  white-space: pre;
+
+}
+
+#qDiv {
+  padding-top: 10px;
+}
+
+
+#LLcontainer {
+  height: auto;
+}
+
+#game {
+  padding: 0;
+  position: relative;
+  height: 88vh;
+}
+
+#choices {
+  position: absolute;
+  bottom: 0;
+}
+
+#q-Num {
+  text-align: right;
+}
+
+@media(max-width: 640px) {
+  h2 {
+    font-size: 1.2em;
+  }
+
+  h6 {
+    font-size: 0.8em;
+  }
+}
