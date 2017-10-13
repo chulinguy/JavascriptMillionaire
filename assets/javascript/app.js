@@ -14,17 +14,17 @@ app.pausedTime = 0;
 //game settings
 app.introWaitTime = 5; 
 app.intermissionWaitTime = 5; 
-app.pauseTimeBetweenQuestions = 4; 
+app.pauseTimeBetweenQuestions = 1; 
 app.difficultySetting = {
-  'Easy': 4,
-  'Medium': 2,
-  'Hard': 2
+  'Easy': 1,
+  'Medium': 6,
+  'Hard': 3
 };
 app.lifelines = ['phoneAFriend','pollTheAudience', 'fiftyFifty'];
 app.difficultyTimer = {
-  'Easy': 20,
-  'Medium': 20,
-  'Hard': 40
+  'Easy': 2000,
+  'Medium': 2000,
+  'Hard': 4000
 }
 app.moneyLadder = ['$100', '$200', '$500', '$1,000', '$2,500', '$10,000', '$32,000', '$125,000', '$400,000', '$1 Milllion']
 app.allQuestionsAnswers = [];  
@@ -58,6 +58,7 @@ app.afterQuestion = function (){
   console.log('processing all actions between questions');
   var that = this;
   $('#choices').empty();
+  $('canvas').remove();
   clearTimeout(this.timeoutF);
   //logic to determine if we should trigger next question or trigger either intermission or gameover
   if (this.questionNumber === this.difficultySetting.Easy){
@@ -116,14 +117,14 @@ app.render = function () {
   $('#timeLeft').text(`Time Left: ${that.difficultyTimer[that.difficulty]}`);
   $('#question').html(that.question);
   //logic to render the multiple choice buttons
-  $('#choices').empty();
+  $('#choices-div').empty();
   multipleChoices.forEach((v, i) => {
-    var MCbutton = $('<button class="btn-primary col-xs-6">').text(`${v}.  ${that.choices[i]}`);
+    var MCbutton = $('<button class="btn-primary col-xs-6 choices">').text(`${v}.  ${that.choices[i]}`);
     MCbutton.attr('data', that.choices[i])
     MCbutton.on('click', function() {
      that.answerCheck($(this).attr('data'))
     })  
-    $('#choices').append(MCbutton);
+    $('#choices-div').append(MCbutton);
   });
   $('.yellow-background').removeClass('yellow-background');  
   $(`#ladder-${that.questionNumber}`).addClass('yellow-background');
@@ -145,13 +146,14 @@ app.gameOver = function(win){
   this.LLavailable = false;  
   clearInterval(this.intervalF);
   clearTimeout(this.timeoutF);
+  $('canvas').remove();  
   $('#timeLeft').text('');
   $('#QID').text('');
   $('#Qdiff').text('');
   if (win == 'win'){
     $('#question').html(`Game over! You won a million dollars!`);
   } else $('#question').html(`Game over! You answered:\n\n ${this.rights} questions correctly`);
-  $('#choices').empty();
+  $('#choices-div').empty();
   $('#startButton').toggle();
 }
 
@@ -283,8 +285,8 @@ app.fiftyFifty = function() {
       $('.btn-primary').filter(function(){
         return $(this).attr('data') == copyArr[i]; 
       }).addClass('hidden fifty-eliminated');
-      that.resumeTimer();  
     }
+    that.resumeTimer();  
   }, 4400);
 }
 
@@ -325,7 +327,7 @@ app.phoneAFriend = function(){
       }
     }
       
-    sentences.high = `The answer is ${friendGuess}, final answer.`;
+    sentences.high = `I know this.  The answer is ${friendGuess}, final answer.`;
     sentences.low = `uhh, I would guess the answer is ${friendGuess}, but I don't really know.`;
   //Logic for choosing a specific friend & voice
     //array of names and associated voices
@@ -334,16 +336,18 @@ app.phoneAFriend = function(){
     var friendProps = voices[Math.floor(Math.random() * voices.length)];
     var friendName = friendProps[1];
     var friendVoice = friendProps[0];
-  //TODO: rendering logic
-
+    
+  //Rendering
   $('#LL-message').html(`<p>Using the 'Phone A Friend Lifeline' to call ${friendName}...</p>`)
   //responsiveVoice specific logic
-  setTimeout(()=>{
+  setTimeout(() => {
     responsiveVoice.speak(sentences[friendConfidence], friendVoice);
+  }, 4000);
+  setTimeout(() => {
     $('#LL-message').empty(); 
     that.resumeTimer();  
     that.toggleLadder();
-  }, 4000)
+  }, 7500);
 
 }
 
@@ -354,7 +358,7 @@ app.pollTheAudience = function (){
   //logic for swapping Regis picture with the bar chart 
   var canvas = $('<canvas>');
   canvas.attr('id', 'pollChart');
-  $('#money-ladder').append(canvas);
+  $('#LL-message').append(canvas);
   var pollDataArr = [];
   // logic to generate random vote numbers for poll data 
   var leftOver = 80;
@@ -424,4 +428,5 @@ app.resumeTimer = function() {
   var that = this;  
   this.timeoutF = setTimeout(that.noGoodAnswer.bind(that), that.pausedTime * 1000);
   this.intervalF = setInterval(that.updateTimer.bind(that, "after resuming"), 1000);
+
 }

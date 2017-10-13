@@ -57,6 +57,11 @@ h6 {
   display: none;
 }
 
+.choices {
+  font-size: 1em;
+  height: 10vh
+}
+
 .qInfoDiv {
   font-size: 1.2em;  
   font-weight: bold;
@@ -89,6 +94,12 @@ h6 {
 
 #pollChart {
   height: 330px;
+}
+
+#Peter-Griffin {
+  width: 30vw;
+  height: auto;
+  max-width: 1000px;
 }
 
 #mainRow{
@@ -127,7 +138,7 @@ code {
   height: 88vh;
 }
 
-#choices {
+#choices-div {
   position: absolute;
   bottom: 0;
 }
@@ -136,16 +147,20 @@ code {
   text-align: right;
 }
 
-@media(max-width: 640px) {
+@media(max-width: 768px) {
   h2 {
     font-size: 1.2em;
   }
 
   h6, p {
-    font-size: 0.8em;
+    font-size: 1em;
   }
 
   .qInfoDiv {
-    font-size: 0.8em; 
+    font-size: 1em; 
+  }
+
+  .choices {
+    width: 100%;
   }
 }
