@@ -10,8 +10,9 @@ app.intervalF = function(){};
 app.timeoutF = function(){};
 app.questionNumber = 0;
 app.questionsForThisGame = []; 
+app.pausedTime = 0;  
 //game settings
-app.introWaitTime = 15; 
+app.introWaitTime = 5; 
 app.intermissionWaitTime = 5; 
 app.pauseTimeBetweenQuestions = 4; 
 app.difficultySetting = {
@@ -21,7 +22,7 @@ app.difficultySetting = {
 };
 app.lifelines = ['phoneAFriend','pollTheAudience', 'fiftyFifty'];
 app.difficultyTimer = {
-  'Easy': 2000,
+  'Easy': 20,
   'Medium': 20,
   'Hard': 40
 }
@@ -155,10 +156,11 @@ app.gameOver = function(win){
 }
 
 //logic to update on screen count-down
-app.updateTimer = function (){
-  console.log("inside update timer");
+app.updateTimer = function (str){
+  // console.log("inside update timer");
   this.timer--;  
   $('#timeLeft').html(`Time Left: ${this.timer}`);
+  // console.log(str)
 }
 
 //initializing logic
@@ -174,8 +176,7 @@ app.initialize = function (){
   this.initRender(this.timer);
   this.timeoutF = setTimeout(that.nextQuestion.bind(that), that.introWaitTime * 1000);
   //activate non-stop timer logic
-  this.intervalF = setInterval(that.updateTimer.bind(that)
-  ,1000);
+  this.intervalF = setInterval(that.updateTimer.bind(that, "before resuming"),1000);
   this.chooseQuestions();
 }
 
@@ -223,6 +224,11 @@ app.initRender = function (time) {
     $moneyRowDiv.append($qNumDiv, $prizeDiv);
     $('#money-ladder').prepend($moneyRowDiv);
   })
+  //add a LL message div overlapping with money ladder
+  $('#money-ladder').append($('<div>').attr({
+    id: "LL-message"
+  }))
+
   //update timer
   $('#timeLeft').html(`Time Left: ${time}`);
   //update the question text
@@ -258,25 +264,28 @@ database.ref("/QandAs").on("value", function(snapshot) {
   $('#startButton').removeClass('hidden');
 })
 var fiftyAudio = new Audio ('assets/audios/fiftyFifty.mp3');
+var phoneAudio = new Audio ('assets/audios/phoneAFriend.mp3');
 
 
 
 // EXTRA STUFF
-app.fiftyFifty = function () {
+app.fiftyFifty = function() {
   console.log('invoking fiftyFifty')
   var that = this;  
+  this.pauseTimer();
   fiftyAudio.play();
   var copyArr = this.choices.slice();
   copyArr.splice((copyArr.indexOf(that.answer)),1);
   copyArr.splice(Math.floor(Math.random() *3),1);
   this.eliminatedChoices = copyArr; 
-  setTimeout(()=>{
+  setTimeout(() => {
     for (var i = 0; i< 2 ; i++){
       $('.btn-primary').filter(function(){
         return $(this).attr('data') == copyArr[i]; 
       }).addClass('hidden fifty-eliminated');
+      that.resumeTimer();  
     }
-  }, 4500);
+  }, 4400);
 }
 
 // logic for "Phone a friend" life line
@@ -285,6 +294,9 @@ app.phoneAFriend = function(){
   var sentences = {};
   var that = this; 
   var friendGuess; 
+  this.pauseTimer();
+  this.toggleLadder();
+  phoneAudio.play(); 
   //Confidence-related logic, to randomize what the friend would say  
     //confidence levels 
     var confidenceArr = ['high', 'low'];
@@ -299,18 +311,22 @@ app.phoneAFriend = function(){
       var lowConfidenceRandom = Math.random(); 
       if (this.fiftyUsedThisRound) {
         if (lowConfidenceRandom < 0.5) friendGuess = this.answer;
-        else friendGuess = _.reject(v => {
+        else {
+          var friendGuessArr = _.reject(this.choices, v => {
             return (v == that.answer || that.eliminatedChoices.indexOf(v) !== -1) 
-          })[0];
+          });
+          // console.log(friendGuessArr);
+          friendGuess = friendGuessArr[0];  
         } 
       }
       else {
         if (lowConfidenceRandom < 0.2) friendGuess = this.answer;
         else friendGuess = this.choices[_.random(0,3)];
       }
+    }
       
     sentences.high = `The answer is ${friendGuess}, final answer.`;
-    sentences.low = `uhh, I would guess the answer is ${friendGuess}, but I really don't know.`;
+    sentences.low = `uhh, I would guess the answer is ${friendGuess}, but I don't really know.`;
   //Logic for choosing a specific friend & voice
     //array of names and associated voices
     var voices = [["UK English Female", "Isabelle"], ["UK English Male", "Archie"],["US English Female", "Carol Ann"],["US English Male", "Billy"]];
@@ -319,9 +335,15 @@ app.phoneAFriend = function(){
     var friendName = friendProps[1];
     var friendVoice = friendProps[0];
   //TODO: rendering logic
-  console.log(`Using the 'Phone A Friend Lifeline' to call ${friendName}...`)
+
+  $('#LL-message').html(`<p>Using the 'Phone A Friend Lifeline' to call ${friendName}...</p>`)
   //responsiveVoice specific logic
-  responsiveVoice.speak(sentences[friendConfidence], friendVoice);
+  setTimeout(()=>{
+    responsiveVoice.speak(sentences[friendConfidence], friendVoice);
+    $('#LL-message').empty(); 
+    that.resumeTimer();  
+    that.toggleLadder();
+  }, 4000)
 
 }
 
@@ -330,7 +352,6 @@ app.pollTheAudience = function (){
   console.log('invoking pollTheAudience')
   var that = this;  
   //logic for swapping Regis picture with the bar chart 
-  // $('#IMGcontainer').empty();
   var canvas = $('<canvas>');
   canvas.attr('id', 'pollChart');
   $('#money-ladder').append(canvas);
@@ -383,4 +404,24 @@ app.pollTheAudience = function (){
           }
       }
   });
+}
+
+app.toggleLadder = ()=> {
+  $('.ladder-row').toggle(); 
+}
+
+app.pauseTimer = function() {
+  this.pausedTime = this.timer;
+  console.log('paused time is', app.pausedTime)
+  clearTimeout(this.timeoutF); 
+  clearInterval(this.intervalF);
+  this.timeoutF = function(){};
+  this.intervalF = function(){};  
+  //TODO: more ? 
+}
+
+app.resumeTimer = function() {
+  var that = this;  
+  this.timeoutF = setTimeout(that.noGoodAnswer.bind(that), that.pausedTime * 1000);
+  this.intervalF = setInterval(that.updateTimer.bind(that, "after resuming"), 1000);
 }
