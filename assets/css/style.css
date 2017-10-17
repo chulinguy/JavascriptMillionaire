@@ -90,6 +90,7 @@ h6 {
 
 .LLdiv {
   padding: 0 1vw;
+  height: 32%
 }
 
 #pollChart {
@@ -108,15 +109,17 @@ h6 {
 
 #page-header {
   margin: 0;
-  padding: 1vh 2vw 2vh 2vw;
+  padding: 1vh 2vw 1vh 2vw;
   height: 8vh
 }
 
-/* #regis {
-  width: 100%;
-  display: block;
-  margin: auto;
-} */
+#info {
+  height: 88vh
+}
+
+#LLandML {
+  height: 100%
+}
 
 code {
   white-space: pre;
@@ -127,15 +130,29 @@ code {
   padding: 1vh 1vw 0 1vw;
 }
 
+#LL-box {
+  vertical-align: middle;
+  height: 43vh;
+  background-color: black;
+  padding-top: 4%
+}
 
-#LLcontainer {
-  height: auto;
+
+#money-ladder {
+  height: 42vh;
+}
+
+#money-ladder-div{
+  background-color: purple;
+  height: 100%;
+  color: white
 }
 
 #game {
   padding: 0;
   position: relative;
-  height: 88vh;
+  height: 87vh;
+  margin-top: 1vh
 }
 
 #choices-div {

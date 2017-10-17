@@ -12,7 +12,7 @@ app.questionNumber = 0;
 app.questionsForThisGame = []; 
 app.pausedTime = 0;  
 //game settings
-app.introWaitTime = 5; 
+app.introWaitTime = 1; 
 app.intermissionWaitTime = 5; 
 app.pauseTimeBetweenQuestions = 1; 
 app.difficultySetting = {
@@ -57,6 +57,7 @@ app.answerCheck = function (choice) {
 app.afterQuestion = function (){
   console.log('processing all actions between questions');
   var that = this;
+  $('.ladder-row').show(); 
   $('#choices').empty();
   $('canvas').remove();
   clearTimeout(this.timeoutF);
@@ -120,7 +121,10 @@ app.render = function () {
   $('#choices-div').empty();
   multipleChoices.forEach((v, i) => {
     var MCbutton = $('<button class="btn-primary col-xs-6 choices">').text(`${v}.  ${that.choices[i]}`);
-    MCbutton.attr('data', that.choices[i])
+    MCbutton.attr({
+      'data': that.choices[i],
+      'letter': v
+    })
     MCbutton.on('click', function() {
      that.answerCheck($(this).attr('data'))
     })  
@@ -128,6 +132,7 @@ app.render = function () {
   });
   $('.yellow-background').removeClass('yellow-background');  
   $(`#ladder-${that.questionNumber}`).addClass('yellow-background');
+  // $('.ladder-row').show(); 
 }
 //intermission logic
 app.intermission = function(){
@@ -191,10 +196,11 @@ app.initRender = function (time) {
   $('#LLcontainer').empty(); 
   $('#money-ladder').empty();
   //create and render lifelines
+  var LLBox = $('<div>').attr({id: "LL-box"});
   _.each(this.lifelines, v => {
     //logic for creating lifeline divs
     var LLdiv = $('<div>');
-    LLdiv.addClass('col-sm-4 col-xs-12 LLdiv text-center');
+    LLdiv.addClass('col-xs-12 LLdiv text-center');
     LLdiv.attr('data', v);
     //logic for creating lifeline images
     var LLimg = $('<img>').addClass('img-fluid');
@@ -209,23 +215,28 @@ app.initRender = function (time) {
       }
     })
     //add it to DOM
-    $('#LLcontainer').append(LLdiv);
+    LLBox.append(LLdiv);
   })
+  $('#LLcontainer').append(LLBox);
   //create money ladder
+  var moneyLadderDiv = $('<div>').attr({
+    id: 'money-ladder-div'
+  });
   _.each(this.moneyLadder, (v, i) => {
     var $moneyRowDiv = $('<div>').attr({
       class: 'row ladder-row',
       id: `ladder-${i+1}`
     })
-    var $qNumDiv = $('<div>').addClass('col-xs-3').attr('id', 'q-Num');
+    var $qNumDiv = $('<div>').addClass('col-xs-4').attr('id', 'q-Num');
     var $qNumH6 = $('<h6>').text(i+1).addClass('float-right');
-    var $prizeDiv = $('<div>').addClass('col-xs-9'); 
+    var $prizeDiv = $('<div>').addClass('col-xs-8'); 
     var $prizeH6 = $('<h6>').text(v);
     $qNumDiv.append($qNumH6);
     $prizeDiv.append($prizeH6);
     $moneyRowDiv.append($qNumDiv, $prizeDiv);
-    $('#money-ladder').prepend($moneyRowDiv);
+    moneyLadderDiv.prepend($moneyRowDiv);
   })
+  $('#money-ladder').append(moneyLadderDiv);
   //add a LL message div overlapping with money ladder
   $('#money-ladder').append($('<div>').attr({
     id: "LL-message"
@@ -267,13 +278,14 @@ database.ref("/QandAs").on("value", function(snapshot) {
 })
 var fiftyAudio = new Audio ('assets/audios/fiftyFifty.mp3');
 var phoneAudio = new Audio ('assets/audios/phoneAFriend.mp3');
-
+var pollAudio = new Audio ('assets/audios/pollTheAudience.mp3');
 
 
 // EXTRA STUFF
 app.fiftyFifty = function() {
   console.log('invoking fiftyFifty')
-  var that = this;  
+  var that = this; 
+  this.fiftyUsedThisRound = true; 
   this.pauseTimer();
   fiftyAudio.play();
   var copyArr = this.choices.slice();
@@ -338,76 +350,117 @@ app.phoneAFriend = function(){
     var friendVoice = friendProps[0];
     
   //Rendering
-  $('#LL-message').html(`<p>Using the 'Phone A Friend Lifeline' to call ${friendName}...</p>`)
+  $('#money-ladder-div').append(`<p id="phone-message">Using the 'Phone A Friend Lifeline' to call ${friendName}...</p>`)
   //responsiveVoice specific logic
   setTimeout(() => {
     responsiveVoice.speak(sentences[friendConfidence], friendVoice);
   }, 4000);
   setTimeout(() => {
-    $('#LL-message').empty(); 
+    $('#phone-message').remove(); 
     that.resumeTimer();  
     that.toggleLadder();
-  }, 7500);
+  }, 8500);
 
 }
 
 // logic for 'Poll The Audience' life line
 app.pollTheAudience = function (){
+  //4:15 ~ 4:24 of the clip
   console.log('invoking pollTheAudience')
   var that = this;  
   //logic for swapping Regis picture with the bar chart 
-  var canvas = $('<canvas>');
-  canvas.attr('id', 'pollChart');
-  $('#LL-message').append(canvas);
-  var pollDataArr = [];
-  // logic to generate random vote numbers for poll data 
-  var leftOver = 80;
-  _.each(this.choices, function (v) {
-    var votes = 0; 
-    var rand = Math.floor(Math.random()*leftOver);
-    if (v === that.answer){
-      votes += 20; 
+  this.pauseTimer();  
+  this.toggleLadder();
+  pollAudio.play();
+  setTimeout(() => {
+    var canvas = $('<canvas>');
+    canvas.attr('id', 'pollChart');
+    $('#money-ladder-div').append(canvas);
+    var pollDataArr = [];
+    // logic to generate random vote numbers for poll data 
+    var leftOver = 80;
+    var chartChoices = []; 
+    var labelsArr = ["A", "B", "C", "D"];
+    var labelsToKillArr = [];  
+    if (that.fiftyUsedThisRound){
+      //eliminate choices
+      console.log('polling with 2 choices')
+      chartChoices = _.reject(that.choices, v => (that.eliminatedChoices.includes(v)))
+      console.log(chartChoices);
+      that.eliminatedChoices.forEach(v => {
+        var labelToEliminate = labelsArr[that.choices.indexOf(v)];
+        labelsToKillArr.push(labelToEliminate);
+      })
+      labelsArr = _.reject(labelsArr, v => (labelsToKillArr.includes(v)));
     }
-    votes += rand;  
-    leftOver -=rand; 
-    pollDataArr.push(votes)
-  })
-
-  // chart.js logic
-  var ctx = document.getElementById("pollChart").getContext('2d');
-  var myChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-          //red, blue, yellow, green
-          labels: ['A', 'B', 'C','D'],
-          datasets: [{
-              label: '# of Votes',
-              data: pollDataArr,
-              backgroundColor: [
-                  'rgba(255, 99, 132, 0.2)',
-                  'rgba(54, 162, 235, 0.2)',
-                  'rgba(255, 206, 86, 0.2)',
-                  'rgba(75, 192, 192, 0.2)',
-              ],
-              borderColor: [
-                  'rgba(255,99,132,1)',
-                  'rgba(54, 162, 235, 1)',
-                  'rgba(255, 206, 86, 1)',
-                  'rgba(75, 192, 192, 1)',
-              ],
-              borderWidth: 1
-          }]
-      },
-      options: {
-          scales: {
-              yAxes: [{
-                  ticks: {
-                      beginAtZero:true
-                  }
-              }]
-          }
+    else chartChoices = that.choices;  
+    _.each(chartChoices, function (v) {
+      var votes = 0; 
+      var rand = Math.floor(Math.random()*leftOver);
+      if (v === that.answer){
+        votes += 20; 
       }
-  });
+      votes += rand;  
+      leftOver -=rand; 
+      pollDataArr.push(votes)
+    })
+
+    console.log(pollDataArr);
+
+    // chart.js logic
+    var ctx = document.getElementById("pollChart").getContext('2d');
+    var chartObj = {
+        type: 'bar',
+        data: {
+            //red, blue, yellow, green
+            labels: labelsArr,
+            datasets: [{
+                label: '# of Votes',
+                data: pollDataArr,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                ],
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          legend: {
+            labels: {
+                fontColor: "white",
+            }
+          },
+          scales: {
+            yAxes: [{
+              display: true,
+              ticks: {
+                fontColor: "white",
+                beginAtZero: true,
+                steps: 10,
+                stepValue: 10,
+                max: 100
+              }
+            }],
+            xAxes: [{
+              ticks: {
+                  fontColor: "white"
+              }
+            }]
+          }
+        }
+    };
+    var myChart = new Chart(ctx, chartObj);
+    this.resumeTimer(); 
+  }, 9500)
 }
 
 app.toggleLadder = ()=> {
