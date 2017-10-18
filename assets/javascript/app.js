@@ -94,7 +94,7 @@ app.nextQuestion = function () {
   var that = this; 
   //update states
   this.question = this.questionsForThisGame[this.questionNumber].question;
-  this.choices = this.questionsForThisGame[this.questionNumber].choices;
+  this.choices = chance.shuffle(that.questionsForThisGame[that.questionNumber].choices);
   this.answer = this.questionsForThisGame[this.questionNumber].answer;
   this.difficulty = this.questionsForThisGame[this.questionNumber].difficulty;
   this.questionNumber++; 
@@ -309,7 +309,8 @@ app.phoneAFriend = function(){
   var that = this; 
   var friendGuess; 
   this.pauseTimer();
-  this.toggleLadder();
+  $('canvas').remove();
+  $('.ladder-row').hide(); 
   phoneAudio.play(); 
   //Confidence-related logic, to randomize what the friend would say  
     //confidence levels 
@@ -370,7 +371,7 @@ app.pollTheAudience = function (){
   var that = this;  
   //logic for swapping Regis picture with the bar chart 
   this.pauseTimer();  
-  this.toggleLadder();
+  $('.ladder-row').hide(); 
   pollAudio.play();
   setTimeout(() => {
     var canvas = $('<canvas>');
@@ -394,13 +395,15 @@ app.pollTheAudience = function (){
       labelsArr = _.reject(labelsArr, v => (labelsToKillArr.includes(v)));
     }
     else chartChoices = that.choices;  
-    _.each(chartChoices, function (v) {
+    _.each(chartChoices, function (v, i) {
+      console.log(`${i+1} times`)
       var votes = 0; 
       var rand = Math.floor(Math.random()*leftOver);
       if (v === that.answer){
         votes += 20; 
       }
-      votes += rand;  
+      if ( (i + 1) === chartChoices.length) votes += leftOver;
+      else votes += rand;  
       leftOver -=rand; 
       pollDataArr.push(votes)
     })
