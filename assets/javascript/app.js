@@ -193,6 +193,7 @@ app.initRender = function (time) {
   var that = this;  
   //hide start button
   $('#startButton').toggle();
+  $('.boot-image').remove();
   $('#LLcontainer').empty(); 
   $('#money-ladder').empty();
   //create and render lifelines
