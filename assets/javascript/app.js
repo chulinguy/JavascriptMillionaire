@@ -157,7 +157,7 @@ app.gameOver = function(win){
   $('#Qdiff').text('');
   if (win == 'win'){
     $('#question').html(`Game over! You won a million dollars!`);
-  } else $('#question').html(`Game over! You answered:\n\n ${this.rights} questions correctly`);
+  } else $('#question').html(`Game over! You answered:\n\n ${this.rights} questions correctly.\n\nPlay again?`);
   $('#choices-div').empty();
   $('#startButton').toggle();
 }
