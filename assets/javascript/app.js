@@ -12,19 +12,19 @@ app.questionNumber = 0;
 app.questionsForThisGame = []; 
 app.pausedTime = 0;  
 //game settings
-app.introWaitTime = 1; 
-app.intermissionWaitTime = 5; 
-app.pauseTimeBetweenQuestions = 1; 
+app.introWaitTime = 5; 
+app.intermissionWaitTime = 6; 
+app.pauseTimeBetweenQuestions = 2; 
 app.difficultySetting = {
-  'Easy': 1,
-  'Medium': 6,
+  'Easy': 4,
+  'Medium': 3,
   'Hard': 3
 };
 app.lifelines = ['phoneAFriend','pollTheAudience', 'fiftyFifty'];
 app.difficultyTimer = {
-  'Easy': 2000,
-  'Medium': 2000,
-  'Hard': 4000
+  'Easy': 20,
+  'Medium': 30,
+  'Hard': 40
 }
 app.moneyLadder = ['$100', '$200', '$500', '$1,000', '$2,500', '$10,000', '$32,000', '$125,000', '$400,000', '$1 Milllion']
 app.allQuestionsAnswers = [];  
@@ -138,6 +138,7 @@ app.render = function () {
 app.intermission = function(){
   console.log('intermission time!');
   var that = this; 
+  intermissionAudio.play();
   this.LLavailable = false;  
   $('#question').text(`Now the game gets a lot tougher!  You have ${that.difficultyTimer.Medium} seconds to answer medium questions and ${that.difficultyTimer.Hard} seconds to answer hard questions. I hope you\'ve been saving your lifelines...`)
    this.timeoutF = setTimeout(that.nextQuestion.bind(that), that.intermissionWaitTime * 1000);
@@ -246,7 +247,7 @@ app.initRender = function (time) {
   //update timer
   $('#timeLeft').html(`Time Left: ${time}`);
   //update the question text
-  $('#question').text(`Let the game begin! You have ${that.difficultyTimer.Easy} seconds to answer each easy question; easy questions are meant to be fun and funny!\n\nNote that you have three lifelines: Phone a Friend, Poll the Audience, and Fifty-fifty.  Remember to turn audio on!`)
+  $('#question').text(`Let the game begin! You have ${that.difficultyTimer.Easy} seconds to answer each easy question; easy questions are meant to be fun and funny!\n\nNote that you have three lifelines: Phone a Friend, Poll the Audience, and Fifty-fifty.  Remember to TURN AUDIO ON!`)
   
   $('#game').css({'background-color': 'lightblue'});
 }
@@ -280,6 +281,8 @@ database.ref("/QandAs").on("value", function(snapshot) {
 var fiftyAudio = new Audio ('assets/audios/fiftyFifty.mp3');
 var phoneAudio = new Audio ('assets/audios/phoneAFriend.mp3');
 var pollAudio = new Audio ('assets/audios/pollTheAudience.mp3');
+var intermissionAudio = new Audio ('assets/audios/intermission.mp3');
+
 
 
 // EXTRA STUFF
