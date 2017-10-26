@@ -55,7 +55,7 @@ app.answerCheck = function (choice) {
 
 //logic for all after-question actioms
 app.afterQuestion = function (){
-  console.log('processing all actions between questions');
+  // console.log('processing all actions between questions');
   var that = this;
   $('.ladder-row').show(); 
   $('#choices').empty();
@@ -73,7 +73,7 @@ app.afterQuestion = function (){
 
 //Logic for good answer
 app.goodAnswer = function () {
-  console.log("good answer!");
+  // console.log("good answer!");
   this.afterQuestion();
   //update game state
   this.rights++;
@@ -83,14 +83,14 @@ app.goodAnswer = function () {
 
 //logic for showing solution if user waits out a question or answers incorrectly
 app.noGoodAnswer = function(answered) {
-  console.log("display solution due to wrong choice or no choice");
+  // console.log("display solution due to wrong choice or no choice");
   this.gameOver();
   
 }
 
 //logic for nextQuestion method 
 app.nextQuestion = function () {
-  console.log('moving onto next question')
+  // console.log('moving onto next question')
   var that = this; 
   //update states
   this.question = this.questionsForThisGame[this.questionNumber].question;
@@ -110,7 +110,7 @@ app.nextQuestion = function () {
 
 //regular rendering logic
 app.render = function () {
-  console.log("rendering question info to DOM");
+  // console.log("rendering question info to DOM");
   var that = this; 
   var multipleChoices = ['A', 'B', 'C', 'D']
   $('#QID').text(`Question : #${that.questionNumber}`);
@@ -136,7 +136,7 @@ app.render = function () {
 }
 //intermission logic
 app.intermission = function(){
-  console.log('intermission time!');
+  // console.log('intermission time!');
   var that = this; 
   intermissionAudio.play();
   this.LLavailable = false;  
@@ -148,7 +148,7 @@ app.intermission = function(){
 
 //game over logic
 app.gameOver = function(win){
-  console.log('game over!'); 
+  // console.log('game over!'); 
   this.LLavailable = false;  
   clearInterval(this.intervalF);
   clearTimeout(this.timeoutF);
@@ -177,7 +177,7 @@ app.updateTimer = function (str){
 
 //initializing logic
 app.initialize = function (){
-  console.log('Game is starting')
+  // console.log('Game is starting')
   var that = this;  
   //reset values
   this.questionsForThisGame = []; 
@@ -194,7 +194,7 @@ app.initialize = function (){
 
 //logic for initial rendering
 app.initRender = function (time) {
-  console.log('rendering initial message and images')
+  // console.log('rendering initial message and images')
   var that = this;  
   //hide start button
   $('#startButton').toggle();
@@ -396,9 +396,9 @@ app.pollTheAudience = function (){
     var labelsToKillArr = [];  
     if (that.fiftyUsedThisRound){
       //eliminate choices
-      console.log('polling with 2 choices')
+      // console.log('polling with 2 choices')
       chartChoices = _.reject(that.choices, v => (that.eliminatedChoices.includes(v)))
-      console.log(chartChoices);
+      // console.log(chartChoices);
       that.eliminatedChoices.forEach(v => {
         var labelToEliminate = labelsArr[that.choices.indexOf(v)];
         labelsToKillArr.push(labelToEliminate);
@@ -407,7 +407,7 @@ app.pollTheAudience = function (){
     }
     else chartChoices = that.choices;  
     _.each(chartChoices, function (v, i) {
-      console.log(`${i+1} times`)
+      // console.log(`${i+1} times`)
       var votes = 0; 
       var rand = Math.floor(Math.random()*leftOver);
       if (v === that.answer){
@@ -419,7 +419,7 @@ app.pollTheAudience = function (){
       pollDataArr.push(votes)
     })
 
-    console.log(pollDataArr);
+    // console.log(pollDataArr);
 
     // chart.js logic
     var ctx = document.getElementById("pollChart").getContext('2d');
@@ -483,7 +483,7 @@ app.toggleLadder = ()=> {
 
 app.pauseTimer = function() {
   this.pausedTime = this.timer;
-  console.log('paused time is', app.pausedTime)
+  // console.log('paused time is', app.pausedTime)
   clearTimeout(this.timeoutF); 
   clearInterval(this.intervalF);
   this.timeoutF = function(){};
