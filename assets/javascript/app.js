@@ -12,8 +12,8 @@ app.questionNumber = 0;
 app.questionsForThisGame = []; 
 app.pausedTime = 0;  
 //game settings
-app.introWaitTime = 5; 
-app.intermissionWaitTime = 6; 
+app.introWaitTime = 8; 
+app.intermissionWaitTime = 8; 
 app.pauseTimeBetweenQuestions = 2; 
 app.difficultySetting = {
   'Easy': 4,
@@ -157,8 +157,12 @@ app.gameOver = function(win){
   $('#QID').text('');
   $('#Qdiff').text('');
   if (win == 'win'){
+    winAudio.play(); 
     $('#question').html(`Game over! You won a million dollars!`);
-  } else $('#question').html(`Game over! You answered:\n\n ${this.rights} questions correctly.\n\nPlay again?`);
+  } else {
+    loseAudio.play();
+    $('#question').html(`Game over! You answered:\n\n ${this.rights} questions correctly.\n\nPlay again?`);
+  }
   $('#choices-div').empty();
   $('#startButton').toggle();
 }
@@ -243,7 +247,7 @@ app.initRender = function (time) {
   $('#money-ladder').append($('<div>').attr({
     id: "LL-message"
   }))
-
+  introAudio.play();
   //update timer
   $('#timeLeft').html(`Time Left: ${time}`);
   //update the question text
@@ -282,6 +286,9 @@ var fiftyAudio = new Audio ('assets/audios/fiftyFifty.mp3');
 var phoneAudio = new Audio ('assets/audios/phoneAFriend.mp3');
 var pollAudio = new Audio ('assets/audios/pollTheAudience.mp3');
 var intermissionAudio = new Audio ('assets/audios/intermission.mp3');
+var winAudio = new Audio ('assets/audios/win.mp3');
+var loseAudio = new Audio ('assets/audios/wrongAnswer.mp3');
+var introAudio = new Audio ('assets/audios/intro.mp3');
 
 
 
