@@ -10,7 +10,7 @@ This web quiz game not only tests your knowledge in Javascript/web development/c
 * You have 30 seconds to answer each of the 3 medium questions and 40 seconds to answer each of the 3 hard questions
 * The game ends if you answer a question incorrectly or if you did not choose an answer in the time allowed
 * The questions are randomly picked from a master list and the choice order is also randomized for replayability
-* You have 3 lifelines per game: phone-a-friend, poll-the-audience, and 50/50; they all have audio effects
+* You have 3 lifelines per game: 'phone-a-friend', 'poll-the-audience', and '50/50'; they all have audio effects
 
 ## Built With
 
@@ -23,7 +23,7 @@ This web quiz game not only tests your knowledge in Javascript/web development/c
 * [ResponsiveVoice.js](https://responsivevoice.org/)
 
 ## Deployment
-This game is accessible [here] (http://chijenlu.com/JavascriptMillionaire/)
+This game is accessible [here](http://chijenlu.com/JavascriptMillionaire/)
 
 ## Authors
 
