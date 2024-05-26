@@ -540,16 +540,16 @@ app.allQuestionsAnswers = [
 
   {
     question:
-      "In Javascript, which of the following operator is not a comparison operator?",
-    choices: ["=>", "!==", "===", "<="],
-    answer: "=>",
+      "In Javascript, which of the following words is NOT a keyword?",
+    choices: ["use", "new", "in", "super"],
+    answer: "use",
     difficulty: "Medium",
   },
 
   {
-    question: "Which operator does NOT exist prior to ECMAScript2015/ES6?",
-    choices: ["...", "===", ">>", "&&"],
-    answer: "...",
+    question: "Which of the following is not a built-in JavaScript Object?",
+    choices: ["Set", "Map", "Symbol", "Hash"],
+    answer: "Hash",
     difficulty: "Medium",
   },
 
